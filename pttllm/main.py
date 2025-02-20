@@ -23,7 +23,9 @@ def main(callsign, chunk_transmission, max_transmission):
         log.error("--chunk-transmission must be less than 10 minutes.")
         exit(1)
 
-    log.info(f"Starting Piper-TTS with callsign: {callsign}")
+    log.info(f"--chunk-transmission: {chunk_transmission}")
+    log.info(f"--max-transmission: {max_transmission}")
+    log.info(f"--callsign: {callsign}")
 
     model_path = get_model("en_GB-alan-low")
     if not model_path:

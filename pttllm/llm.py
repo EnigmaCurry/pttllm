@@ -15,7 +15,7 @@ def respond_to_query(stream, voice, callsign, query,
     generate_silence(stream, voice, 1.0)
 
     # Calculate max allowed chunks based on max_transmission
-    max_chunks = max_transmission // chunk_transmission  # Floor division to round down
+    max_chunks = max_transmission // chunk_transmission
     truncated = len(response_chunks) > max_chunks
 
     # Iterate through allowed chunks and transmit
@@ -23,7 +23,7 @@ def respond_to_query(stream, voice, callsign, query,
         say(stream, voice, chunk)
 
         # If there are more chunks, announce continuation
-        if idx < max_chunks - 1:
+        if idx < min(len(response_chunks), max_chunks) - 1:
             generate_silence(stream, voice, 0.5)
             say(stream, voice, f"{phonetic_callsign}, continuing response.")
             generate_silence(stream, voice, 0.5)
