@@ -1,0 +1,24 @@
+[project]
+name = "pttllm"
+version = "0.1.0"
+description = "LLM over radio"
+authors = [
+    {name = "EnigmaCurry"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "pyserial (>=3.5,<4.0)",
+    "sounddevice (>=0.5.1,<0.6.0)",
+    "piper-tts (>=1.2.0,<2.0.0)",
+    "requests (>=2.32.3,<3.0.0)",
+    "click (>=8.1.8,<9.0.0)",
+]
+
+[tool.poetry.scripts]
+pttllm = "pttllm:main"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
