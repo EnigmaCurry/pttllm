@@ -1,17 +1,48 @@
 from .phonetic_alphabet import to_phonetic
 from .audio import generate_silence, say
-from .text import split_text
+from .text import split_text, markdown_to_plaintext
+from openai import OpenAI
 
-def respond_to_query(stream, voice, callsign, query,
-                     chunk_transmission=5, max_transmission=10):
+import logging
+log = logging.getLogger(__name__)
+logging.getLogger("openai._base_client").setLevel(logging.DEBUG)
+
+def query_llm(base_url, api_key, model, prompt, query):
+    client = OpenAI(base_url=base_url, api_key=api_key)
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": query}
+        ],
+        max_tokens=-1,
+        temperature=0.7
+    )
+    return markdown_to_plaintext(response.choices[0].message.content.strip())
+
+def respond_to_query(stream, voice, callsign="", query="",
+                     chunk_transmission=5, max_transmission=10,
+                     base_url="", api_key="api-key", model="",
+                     prompt="You are a helpful assistant."):
+    if not base_url:
+        log.error("base_url is not defined")
+        exit(1)
+
     phonetic_callsign = to_phonetic(callsign)
 
     # Initial response announcement
     say(stream, voice, f"This is {phonetic_callsign} automated station responding to LLM query")
     generate_silence(stream, voice, 0.5)
 
-    # Split the response into hard-coded 5-minute chunks
-    response_chunks = split_text(query, duration_minutes=chunk_transmission)
+    # Query the LLM
+    try:
+        llm_response = query_llm(base_url=base_url, api_key=api_key, model=model, prompt=prompt, query=query)
+    except Exception as e:
+        say(stream, voice, f"Error querying LLM: {str(e)}")
+        return
+
+    # Split the response into chunks
+    response_chunks = split_text(llm_response, duration_minutes=chunk_transmission)
     generate_silence(stream, voice, 1.0)
 
     # Calculate max allowed chunks based on max_transmission

@@ -11,11 +11,17 @@ import logging
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
+SYSTEM_PROMPT_DEFAULT = "You are a helpful assistant"
+
 @click.command()
 @click.option('--callsign', required=True, help='The callsign the LLM should use.')
+@click.option('--base-url', required=True, help='The LLM API base URL.')
+@click.option('--api-key', default="api-key", help='The LLM API key.')
+@click.option('--model', default="", help='The LLM model name.')
+@click.option('--prompt', default=SYSTEM_PROMPT_DEFAULT, help='The LLM system prompt.')
 @click.option('--chunk-transmission', default=5, help='Transmit response in X minute chunks')
 @click.option('--max-transmission', default=10, help='Maximum transmission time in minutes.', type=int)
-def main(callsign, chunk_transmission, max_transmission):
+def main(callsign, base_url, api_key, model, prompt, chunk_transmission, max_transmission):
     if chunk_transmission > max_transmission :
         log.error("--chunk-transmission must be less than --max-transmission")
         exit(1)
@@ -39,12 +45,14 @@ def main(callsign, chunk_transmission, max_transmission):
 
     print(f"{callsign} is ready. Enter text to synthesize (type 'exit' to quit):")
     while True:
-        text = get_multiline_input()
-        if text.lower() == "exit":
+        query = get_multiline_input()
+        if query.lower() == "exit":
             break
-        respond_to_query(stream, voice, callsign, text,
+        respond_to_query(stream=stream, voice=voice,
+                         callsign=callsign, query=query,
                          chunk_transmission=chunk_transmission,
-                         max_transmission=max_transmission)
+                         max_transmission=max_transmission,
+                         base_url=base_url, api_key=api_key, model=model)
     stream.stop()
     stream.close()
     log.info("Piper-TTS has stopped.")
