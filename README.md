@@ -2,9 +2,25 @@
 
 This program provides a ham radio voice interface to a LLM.
 
+## Dependencies
+
+ * Python 3.11
+ * FFMpeg
+ * llvm 10.0 (required by
+   [openai-whisper](https://pypi.org/project/openai-whisper/))
+ 
 ## Development
 
-Development is currently using Python 3.11:
+On Arch linux, install
+[python311](https://aur.archlinux.org/packages/python311) and
+[llvm10](https://aur.archlinux.org/packages/llvm10) from AUR:
+
+```
+yay -S python311 llvm10
+export LLVM_CONFIG=/opt/llvm10/bin/llvm-config 
+```
+
+Clone and setup project:
 
 ```
 git clone https://github.com/EnigmaCurry/pttllm.git \

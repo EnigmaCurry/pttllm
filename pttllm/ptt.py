@@ -17,9 +17,3 @@ def ptt_off():
     ser.setDTR(False)
     log.info("PTT OFF")
 
-try:
-    ptt_on()
-    time.sleep(5)
-    ptt_off()
-finally:
-    ser.close()
