@@ -119,12 +119,12 @@ alias pttllm="poetry -P ~/git/vendor/enigmacurry/pttllm run pttllm"
 
 ## Configure the .env file
 
-Included in the source is a same config file named `.env-dist`. Copy
-this file to another name (e.g. `.env`) and edit it. 
+Included in the source is a config file named `.env-dist`. Copy this
+file to another name (e.g. `.env`) and edit it.
 
  * Make sure to enter your radio callsign `PTTLLM_CALLSIGN`.
- * The `PTTLLM_BASE_URL` is preconfigured for LM studio, but you can
-   enter any OpenAI compatible endpoint.
+ * The `PTTLLM_BASE_URL` is preconfigured for LM studio running on the
+   same PC, but you can enter any OpenAI compatible endpoint.
  * Make sure to enter the correct `PTTLLM_INPUT` and `PTTLLM_OUTPUT`
    for your digirig sound device.
 
@@ -138,4 +138,4 @@ pttllm --dotenv .env station
 
 The base station should now be listening for transmission (that carry
 the correct CTCSS tone). Transmit your query to the LLM using the
-portable radio.
+portable radio, and the LLM should respond.
