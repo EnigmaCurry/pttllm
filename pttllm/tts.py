@@ -88,3 +88,5 @@ def get_model(model_name):
 
     return onnx_file_path
 
+def get_voices():
+    return [k for k in piper_models.keys()]
