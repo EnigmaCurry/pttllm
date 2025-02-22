@@ -1,6 +1,9 @@
 # pttllm : Push To Talk Large Language Model
 
-This program provides a ham radio voice interface to a LLM.
+This program provides a ham radio voice interface to a LLM (e.g. LM
+Studio or ChatGPT). A base station is connected to a Linux PC and a
+secondary mobile radio is used to talk with the LLM via voice
+communication.
 
 ## Setup
 
@@ -27,7 +30,7 @@ setting and range:
  * Use the 70cm (UHF) band. UHF has good wall penetration, but a
    pretty short range overall.
    * For amateur radio, [consult the ARRL band plan](https://www.arrl.org/images/view/Charts/Band_Chart_Image_for_ARRL_Web.jpg)
-   * All licenced amateurs may use the 70cm band, with frequencies
+   * All licensed amateurs may use the 70cm band, with frequencies
      420.0MHz <-> 450.0MHz.
    * For this example, we will use the frequency `423.107500`.
  * On the Baofeng, set the power level to "Low".
