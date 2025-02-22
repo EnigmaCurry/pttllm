@@ -5,10 +5,10 @@ import os
 from dotenv import load_dotenv
 from piper.voice import PiperVoice
 from .tts import get_model, get_voices
-from .audio import generate_silence, say, get_interface, \
-    list_interfaces, validate_device
+from .audio import generate_silence, say, get_interface, list_interfaces, validate_device
 from .llm import respond_to_query
 from .text import get_multiline_input
+from .asr import ASR  # Import ASR module
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -38,8 +38,9 @@ def cli(dotenv):
 @click.option('--voice', default=lambda: get_env_or_default('PTTLLM_VOICE', "en_GB-alan-low"), help='The voice model')
 @click.option('--input', default=lambda: get_env_or_default('PTTLLM_INPUT', "default"), help='The audio input interface name')
 @click.option('--output', default=lambda: get_env_or_default('PTTLLM_OUTPUT', "default"), help='The audio output interface name')
+@click.option('--transcribe-only', is_flag=True, help='Only transcribe the speech without sending responses.')
 def station(callsign, base_url, api_key, model, prompt,
-            chunk_transmission, max_transmission, voice, input, output):
+            chunk_transmission, max_transmission, voice, input, output, transcribe_only):
     if chunk_transmission > max_transmission:
         log.error("--chunk-transmission must be less than --max-transmission")
         exit(1)
@@ -57,6 +58,7 @@ def station(callsign, base_url, api_key, model, prompt,
     log.info(f"--voice: {voice}")
     log.info(f"--input: {input}")
     log.info(f"--output: {output}")
+    log.info(f"--transcribe-only: {transcribe_only}")
 
     model_path = get_model(voice)
     if not model_path:
@@ -68,30 +70,50 @@ def station(callsign, base_url, api_key, model, prompt,
     voice = PiperVoice.load(model_path)
     if interface_output['max_output_channels'] < 1:
         raise ValueError(f"Audio interface has no output channels: {interface_output}")
+    log.info(f"Input device: {interface_input}")
     log.info(f"Output device: {interface_output}")
     try:
         stream = sd.OutputStream(
             samplerate=interface_output['default_samplerate'],
             channels=1,
-            dtype='int16', device=(interface_input['index'], interface_output['index']))
-    except:
-        log.error(interface_output)
-        raise
+            dtype='int16', device=(None, interface_output['index']))
+    except Exception as e:
+        log.error(f"Failed to start audio stream: {e}")
+        return
+
     stream.start()
 
-    print(f"{callsign} is ready. Enter text to synthesize (type 'exit' to quit):")
-    while True:
-        query = get_multiline_input()
-        if query.lower() == "exit":
-            break
-        respond_to_query(stream=stream, voice=voice,
-                         callsign=callsign, query=query,
-                         chunk_transmission=chunk_transmission,
-                         max_transmission=max_transmission,
-                         base_url=base_url, api_key=api_key, model=model)
-    stream.stop()
-    stream.close()
-    log.info("Piper-TTS has stopped.")
+    # Initialize ASR system
+    asr_system = ASR(model_name="base")
+
+    # Callback to handle transcriptions
+    def handle_transcription(transcription):
+        if transcription.strip():
+            log.info(f"Received transcription: {transcription}")
+
+            if not transcribe_only:
+                # Proceed with LLM response if transcribe-only is False
+                respond_to_query(stream=stream, voice=voice,
+                                 callsign=callsign, query=transcription,
+                                 chunk_transmission=chunk_transmission,
+                                 max_transmission=max_transmission,
+                                 base_url=base_url, api_key=api_key, model=model)
+            else:
+                # Log that response is skipped
+                log.info("Transcribe-only mode enabled. Skipping response.")
+        else:
+            log.info("Empty transcription received, ignoring.")
+
+    # Start ASR listening loop
+    try:
+        log.info(f"{callsign} is ready. Listening for transmissions...")
+        asr_system.listen_and_transcribe(device=interface_input, on_transcription=handle_transcription)
+    except KeyboardInterrupt:
+        log.info("Stopping station...")
+    finally:
+        stream.stop()
+        stream.close()
+        log.info("Piper-TTS has stopped.")
 
 @cli.command()
 def list_devices():
