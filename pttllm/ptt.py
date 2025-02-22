@@ -1,19 +1,25 @@
 import serial
 import time
 import logging
-logging.basicConfig(level=logging.INFO)
 
+logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
 serial_port = '/dev/ttyUSB0'
+ser = None  # Serial port will be initialized when needed
 
-ser = serial.Serial(serial_port)
+def init_serial():
+    global ser
+    if ser is None:
+        ser = serial.Serial(serial_port)
+        log.info(f"Initialized serial port: {serial_port}")
 
 def ptt_on():
-    ser.setDTR(True)
+    init_serial()
+    ser.setRTS(True)
     log.info("PTT ON")
 
 def ptt_off():
-    ser.setDTR(False)
+    init_serial()
+    ser.setRTS(False)
     log.info("PTT OFF")
-
